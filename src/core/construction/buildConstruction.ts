@@ -289,6 +289,22 @@ export function buildConstruction(
   const setTrace = (f: number, line: CLine, p: Vec3, q: Vec3, A?: CPoint, B?: CPoint) =>
     traces.set(f, { line, p, dir: sub(q, p), A, B });
 
+  /** Если след лежит на прямой ребра многогранника (ребро целиком в α), это ребро и есть прямая α. */
+  const traceOnEdge = (tr: Trace) => {
+    const q = add(tr.p, tr.dir);
+    const onLine = (x: Vec3, a: Vec3, b: Vec3) =>
+      length(cross(sub(x, a), sub(b, a))) / distance(a, b) <= tol.dist * 100;
+    const e = poly.edges.findIndex(([a, b]) => onLine(tr.p, V[a], V[b]) && onLine(q, V[a], V[b]));
+    if (e < 0) return null;
+    return {
+      edge: e,
+      text:
+        tr.A && tr.B
+          ? `Точки ${tr.A.label} и ${tr.B.label} принадлежат α и лежат на прямой ${E(e)}, поэтому вся прямая ${E(e)} лежит в α (аксиома о двух точках прямой).`
+          : `Прямая ${tr.line.name} лежит в α и совпадает с прямой ребра ${E(e)}.`,
+    };
+  };
+
   /**
    * Если след проходит через точки A ∈ OP и B ∈ OQ рёбер грани с общей вершиной O
    * и OA : OP = OB : OQ, то AB ∥ PQ (подобие треугольников). Возвращает ребро PQ и обоснование.
@@ -416,7 +432,7 @@ export function buildConstruction(
 
     /* ── F. Прямая, параллельная α: e ∥ ℓ ⊂ α ⇒ α ∩ (G) ∥ e для грани G ⊃ e ── */
     for (const [, tr] of traces) {
-      const pp = proportionalParallel(tr.A, tr.B);
+      const pp = proportionalParallel(tr.A, tr.B) ?? traceOnEdge(tr);
       if (!pp) continue;
       poly.edges.forEach(([a, b], e2) => {
         if (section.signs[a] === 0 && section.signs[b] === 0) return; // ребро в α

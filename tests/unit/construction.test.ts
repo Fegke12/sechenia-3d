@@ -56,6 +56,14 @@ describe('школьное решение', () => {
     expect(s.section!.vertices).toHaveLength(4);
   });
 
+  it('две точки на ребре основания: ребро AD лежит в α, след в SBC проводится ∥ BC без координат', () => {
+    const s = solveText(poly('pyramid', { n: 4 }), 'M ∈ SB, SM : MB = 2 : 1\nN ∈ AD, AN : ND = 3 : 1\nK ∈ AD, AK : KD = 1 : 4');
+    expect(s.trusted).toBe(true);
+    expect(s.construction!.usedCoordinateMethod).toBe(false);
+    const par = s.construction!.steps.find((x) => x.rule === 'parallel')!;
+    expect(par.justification.join(' ')).toMatch(/вся прямая AD лежит в α/);
+  });
+
   it('точки в трёх разных гранях: используется внутреннее проектирование', () => {
     const s = solveText(poly('cube'), 'M — середина AA₁\nN ∈ BC, BN : NC = 1 : 2\nK — середина C₁D₁');
     expect(s.construction!.steps.some((x) => x.rule === 'projection')).toBe(true);

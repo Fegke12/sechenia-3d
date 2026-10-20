@@ -112,7 +112,8 @@ describe('школьное решение на случайных задачах
           if (s.construction!.usedCoordinateMethod) st.coord++;
         }
       }),
-      { numRuns: 3000 },
+      // Фиксированный сид: проверяется статистика, она должна быть воспроизводимой в CI.
+      { numRuns: 3000, seed: 20261020 },
     );
     // Для школьных фигур классическое построение должно находиться почти всегда.
     for (const k of ['cube', 'prism', 'pyramid', 'tetrahedron', 'parallelepiped']) {
